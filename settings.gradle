@@ -1,0 +1,5 @@
+rootProject.name = 'SpringMVC-2.1'
+include 'WebLayer'
+include 'Service'
+include 'Repository'
+
