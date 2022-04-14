@@ -1,4 +1,4 @@
-package com.epam.esm.sqlBuilder;
+package com.epam.esm.sqlbuilder;
 
 import org.springframework.stereotype.Component;
 

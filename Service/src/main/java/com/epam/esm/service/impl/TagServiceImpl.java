@@ -1,7 +1,7 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.DAO.TagDAO;
-import com.epam.esm.DTOs.TagDTO;
+import com.epam.esm.dao.TagDAO;
+import com.epam.esm.dtos.TagDTO;
 import com.epam.esm.domain.Tag;
 import com.epam.esm.exception.AlreadyExistElementException;
 import com.epam.esm.exception.NoSuchIdException;

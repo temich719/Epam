@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.TimeZone;
 
-import static com.epam.esm.stringsStorage.RepositoryStringsStorage.*;
+import static com.epam.esm.stringsstorage.RepositoryStringsStorage.*;
 
 @Configuration
 @Profile("prod")

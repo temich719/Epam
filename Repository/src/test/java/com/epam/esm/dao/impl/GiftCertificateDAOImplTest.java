@@ -1,6 +1,6 @@
-package com.epam.esm.DAO.impl;
+package com.epam.esm.dao.impl;
 
-import com.epam.esm.DAO.GiftCertificateDAO;
+import com.epam.esm.dao.GiftCertificateDAO;
 import com.epam.esm.config.DevRepositoryConfig;
 import com.epam.esm.domain.GiftCertificate;
 import com.epam.esm.domain.Tag;

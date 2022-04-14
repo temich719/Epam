@@ -1,6 +1,6 @@
 package com.epam.esm.service;
 
-import com.epam.esm.DTOs.GiftCertificateDTO;
+import com.epam.esm.dtos.GiftCertificateDTO;
 import com.epam.esm.exception.NoSuchIdException;
 import com.epam.esm.exception.NotInsertedException;
 

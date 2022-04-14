@@ -1,6 +1,6 @@
 package com.epam.esm.service;
 
-import com.epam.esm.DTOs.TagDTO;
+import com.epam.esm.dtos.TagDTO;
 import com.epam.esm.exception.AlreadyExistElementException;
 import com.epam.esm.exception.NoSuchIdException;
 import com.epam.esm.exception.NotInsertedException;

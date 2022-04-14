@@ -1,4 +1,4 @@
-package com.epam.esm.DAO;
+package com.epam.esm.dao;
 
 import com.epam.esm.domain.GiftCertificate;
 
