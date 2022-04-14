@@ -19,6 +19,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
+@RequestMapping("/tags")
 public class TagController extends AbstractController {
 
     private static final Logger LOGGER = Logger.getLogger(TagController.class);
@@ -38,7 +39,7 @@ public class TagController extends AbstractController {
         this.tagService = tagService;
     }
 
-    @PostMapping(value = "/tags", produces = "application/json")
+    @PostMapping(produces = "application/json")
     public ResponseEntity<?> createTag(@Valid @RequestBody TagDTO tagDTO, BindingResult bindingResult) throws NotInsertedException, AlreadyExistElementException, InvalidInputDataException {
         LOGGER.info("Start tag creation");
         bindingResultCheck(bindingResult);
@@ -51,14 +52,14 @@ public class TagController extends AbstractController {
         return new ResponseEntity<>(gson.toJson(answerMessageJson), httpStatus);
     }
 
-    @GetMapping(value = "/tags/{id}", produces = "application/json")
+    @GetMapping(value = "/{id}", produces = "application/json")
     public ResponseEntity<?> getTagById(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Getting tag by id");
         TagDTO tagDTO = tagService.getTagById(id);
         return new ResponseEntity<>(gson.toJson(tagDTO), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/tags", produces = "application/json")
+    @GetMapping(produces = "application/json")
     public ResponseEntity<?> getTagList() {
         LOGGER.info("Getting tag list");
         List<TagDTO> tagDTOs = tagService.getTagList();
@@ -76,7 +77,7 @@ public class TagController extends AbstractController {
         return responseEntity;
     }
 
-    @DeleteMapping(value = "/tags/{id}", produces = "application/json")
+    @DeleteMapping(value = "/{id}", produces = "application/json")
     public ResponseEntity<?> deleteTag(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Tag deletion by id");
         tagService.deleteTag(id);

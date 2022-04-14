@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
+@RequestMapping("/certificates")
 public class GiftController extends AbstractController {
 
     private static final Logger LOGGER = Logger.getLogger(GiftController.class);
@@ -42,7 +43,7 @@ public class GiftController extends AbstractController {
         this.giftCertificateService = giftCertificateService;
     }
 
-    @PostMapping(value = "/certificates", produces = "application/json")
+    @PostMapping(produces = "application/json")
     public ResponseEntity<?> insertCertificate(@Valid @RequestBody GiftCertificateDTO giftCertificateDTO, BindingResult bindingResult) throws NotInsertedException, InvalidInputDataException {
         LOGGER.info("Start gift certificate creation");
         bindingResultCheck(bindingResult);
@@ -55,14 +56,14 @@ public class GiftController extends AbstractController {
         return new ResponseEntity<>(gson.toJson(answerMessageJson), httpStatus);
     }
 
-    @GetMapping(value = "/certificates/{id}", produces = "application/json")
+    @GetMapping(value = "/{id}", produces = "application/json")
     public ResponseEntity<?> getCertificateByID(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Getting certificate by id");
         GiftCertificateDTO giftCertificateDTO = giftCertificateService.getGiftCertificateByID(id);
         return new ResponseEntity<>(gson.toJson(giftCertificateDTO), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/certificates", produces = "application/json")
+    @GetMapping(produces = "application/json")
     public ResponseEntity<?> getCertificatesList() {
         LOGGER.info("Getting certificates list");
         List<GiftCertificateDTO> giftCertificateDTOs = giftCertificateService.getGiftCertificatesDTOList();
@@ -80,7 +81,7 @@ public class GiftController extends AbstractController {
         return responseEntity;
     }
 
-    @DeleteMapping(value = "/certificates/{id}", produces = "application/json")
+    @DeleteMapping(value = "/{id}", produces = "application/json")
     public ResponseEntity<?> deleteGiftCertificate(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Certificate deletion by id");
         giftCertificateService.deleteGiftCertificate(id);
@@ -92,7 +93,7 @@ public class GiftController extends AbstractController {
     }
 
 
-    @PutMapping(value = "/certificates/{id}", produces = "application/json")
+    @PutMapping(value = "/{id}", produces = "application/json")
     public ResponseEntity<?> updateGiftCertificate(@PathVariable long id, @RequestBody GiftCertificateDTO giftCertificateDTO) throws NoSuchIdException {
         LOGGER.info("Updating certificate");
         giftCertificateService.updateGiftCertificate(id, giftCertificateDTO);
@@ -103,7 +104,7 @@ public class GiftController extends AbstractController {
         return new ResponseEntity<>(gson.toJson(answerMessageJson), httpStatus);
     }
 
-    @GetMapping(value = "/certificates/search", produces = "application/json")
+    @GetMapping(value = "/search", produces = "application/json")
     public ResponseEntity<?> searchGiftCertificate(@Valid @RequestBody SearchParamContainer searchParamContainer, BindingResult bindingResult) throws InvalidInputDataException {
         LOGGER.info("Start search certificate by params");
         bindingResultCheck(bindingResult);
