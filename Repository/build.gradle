@@ -30,9 +30,7 @@ dependencies {
     implementation group: 'org.springframework', name: 'spring-jdbc', version: springVersion
     implementation group: 'log4j', name: 'log4j', version: '1.2.17'
     implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.28'
-    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.30'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.22.0'
-    implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '6.1.5.Final'
 }
 
 test {
