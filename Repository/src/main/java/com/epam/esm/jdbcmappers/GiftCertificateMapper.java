@@ -1,4 +1,4 @@
-package com.epam.esm.jdbcMappers;
+package com.epam.esm.jdbcmappers;
 
 import com.epam.esm.domain.GiftCertificate;
 import org.springframework.jdbc.core.RowMapper;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.epam.esm.stringsStorage.RepositoryStringsStorage.*;
+import static com.epam.esm.stringsstorage.RepositoryStringsStorage.*;
 
 @Component
 public class GiftCertificateMapper implements RowMapper<GiftCertificate> {

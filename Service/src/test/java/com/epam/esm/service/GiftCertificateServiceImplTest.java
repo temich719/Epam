@@ -1,7 +1,7 @@
 package com.epam.esm.service;
 
-import com.epam.esm.DAO.GiftCertificateDAO;
-import com.epam.esm.DTOs.GiftCertificateDTO;
+import com.epam.esm.dao.GiftCertificateDAO;
+import com.epam.esm.dtos.GiftCertificateDTO;
 import com.epam.esm.domain.GiftCertificate;
 import com.epam.esm.util.Mapper;
 import org.junit.jupiter.api.BeforeEach;

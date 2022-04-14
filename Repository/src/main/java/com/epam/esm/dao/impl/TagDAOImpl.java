@@ -1,10 +1,10 @@
-package com.epam.esm.DAO.impl;
+package com.epam.esm.dao.impl;
 
-import com.epam.esm.DAO.AbstractDAO;
-import com.epam.esm.DAO.TagDAO;
+import com.epam.esm.dao.AbstractDAO;
+import com.epam.esm.dao.TagDAO;
 import com.epam.esm.domain.GiftCertificate;
 import com.epam.esm.domain.Tag;
-import com.epam.esm.jdbcMappers.TagMapper;
+import com.epam.esm.jdbcmappers.TagMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

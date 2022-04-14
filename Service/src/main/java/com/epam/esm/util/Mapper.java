@@ -1,7 +1,7 @@
 package com.epam.esm.util;
 
-import com.epam.esm.DTOs.GiftCertificateDTO;
-import com.epam.esm.DTOs.TagDTO;
+import com.epam.esm.dtos.GiftCertificateDTO;
+import com.epam.esm.dtos.TagDTO;
 import com.epam.esm.domain.GiftCertificate;
 import com.epam.esm.domain.Tag;
 import org.springframework.stereotype.Component;

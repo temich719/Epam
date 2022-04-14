@@ -1,12 +1,12 @@
-package com.epam.esm.DAO.impl;
+package com.epam.esm.dao.impl;
 
-import com.epam.esm.DAO.AbstractDAO;
-import com.epam.esm.DAO.GiftCertificateDAO;
-import com.epam.esm.DAO.TagDAO;
-import com.epam.esm.dateInISO.DateGenerator;
+import com.epam.esm.dao.AbstractDAO;
+import com.epam.esm.dao.GiftCertificateDAO;
+import com.epam.esm.dao.TagDAO;
+import com.epam.esm.dateiniso.DateGenerator;
 import com.epam.esm.domain.GiftCertificate;
-import com.epam.esm.jdbcMappers.GiftCertificateMapper;
-import com.epam.esm.sqlBuilder.SQLBuilder;
+import com.epam.esm.jdbcmappers.GiftCertificateMapper;
+import com.epam.esm.sqlbuilder.SQLBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;

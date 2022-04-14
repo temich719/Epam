@@ -1,4 +1,4 @@
-package com.epam.esm.searchParamContainer;
+package com.epam.esm.searchparamcontainer;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

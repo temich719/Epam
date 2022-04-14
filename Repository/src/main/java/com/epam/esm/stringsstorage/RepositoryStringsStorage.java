@@ -1,4 +1,4 @@
-package com.epam.esm.stringsStorage;
+package com.epam.esm.stringsstorage;
 
 public class RepositoryStringsStorage {
     public static final String PROD_DATABASE_POOL_SIZE = "poolSize";

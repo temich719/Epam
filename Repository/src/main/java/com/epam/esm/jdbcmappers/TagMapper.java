@@ -1,4 +1,4 @@
-package com.epam.esm.jdbcMappers;
+package com.epam.esm.jdbcmappers;
 
 import com.epam.esm.domain.Tag;
 import org.springframework.jdbc.core.RowMapper;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static com.epam.esm.stringsStorage.RepositoryStringsStorage.*;
+import static com.epam.esm.stringsstorage.RepositoryStringsStorage.*;
 
 @Component
 public class TagMapper implements RowMapper<Tag> {

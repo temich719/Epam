@@ -1,6 +1,6 @@
 package com.epam.esm.controller;
 
-import com.epam.esm.DTOs.TagDTO;
+import com.epam.esm.dtos.TagDTO;
 import com.epam.esm.errors.AnswerMessageJson;
 import com.epam.esm.exception.AlreadyExistElementException;
 import com.epam.esm.exception.InvalidInputDataException;
@@ -12,15 +12,13 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
 
-@Controller
-@ResponseBody
+@RestController
 public class TagController extends AbstractController {
 
     private static final Logger LOGGER = Logger.getLogger(TagController.class);
@@ -40,7 +38,7 @@ public class TagController extends AbstractController {
         this.tagService = tagService;
     }
 
-    @PostMapping("/new/tag")
+    @PostMapping(value = "/tags", produces = "application/json")
     public ResponseEntity<?> createTag(@Valid @RequestBody TagDTO tagDTO, BindingResult bindingResult) throws NotInsertedException, AlreadyExistElementException, InvalidInputDataException {
         LOGGER.info("Start tag creation");
         bindingResultCheck(bindingResult);
@@ -53,14 +51,14 @@ public class TagController extends AbstractController {
         return new ResponseEntity<>(gson.toJson(answerMessageJson), httpStatus);
     }
 
-    @GetMapping("/get/tag/{id}")
+    @GetMapping(value = "/tags/{id}", produces = "application/json")
     public ResponseEntity<?> getTagById(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Getting tag by id");
         TagDTO tagDTO = tagService.getTagById(id);
         return new ResponseEntity<>(gson.toJson(tagDTO), HttpStatus.OK);
     }
 
-    @GetMapping("/get/tag/list")
+    @GetMapping(value = "/tags", produces = "application/json")
     public ResponseEntity<?> getTagList() {
         LOGGER.info("Getting tag list");
         List<TagDTO> tagDTOs = tagService.getTagList();
@@ -78,7 +76,7 @@ public class TagController extends AbstractController {
         return responseEntity;
     }
 
-    @DeleteMapping("/delete/tag/{id}")
+    @DeleteMapping(value = "/tags/{id}", produces = "application/json")
     public ResponseEntity<?> deleteTag(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Tag deletion by id");
         tagService.deleteTag(id);

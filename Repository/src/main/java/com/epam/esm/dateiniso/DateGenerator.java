@@ -1,4 +1,4 @@
-package com.epam.esm.dateInISO;
+package com.epam.esm.dateiniso;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
