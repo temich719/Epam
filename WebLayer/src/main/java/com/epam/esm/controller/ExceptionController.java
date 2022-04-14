@@ -1,10 +1,7 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.errors.AnswerMessageJson;
-import com.epam.esm.exception.AlreadyExistElementException;
-import com.epam.esm.exception.InvalidInputDataException;
-import com.epam.esm.exception.NoSuchIdException;
-import com.epam.esm.exception.NotInsertedException;
+import com.epam.esm.exception.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import java.io.FileNotFoundException;
 
 @ControllerAdvice
-public class ExceptionController {
+public class ExceptionController extends AbstractController{
 
     private static final Logger LOGGER = Logger.getLogger(ExceptionController.class);
 
@@ -27,12 +24,11 @@ public class ExceptionController {
     private static final String NOT_INSERTED_CODE = "23";
     private static final String ALREADY_EXIST_ELEMENT_CODE = "24";
     private static final String INVALID_INPUT_DATE_CODE = "25";
-
-    private final AnswerMessageJson answerMessageJson;
+    private static final String EMPTY_LIST_CODE = "26";
 
     @Autowired
     public ExceptionController(AnswerMessageJson answerMessageJson) {
-        this.answerMessageJson = answerMessageJson;
+        super(answerMessageJson);
     }
 
     @ExceptionHandler(value = FileNotFoundException.class)
@@ -99,6 +95,17 @@ public class ExceptionController {
         answerMessageJson.setMessage(e.getMessage());
         answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
         answerMessageJson.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value() + INVALID_INPUT_DATE_CODE);
+        return answerMessageJson;
+    }
+
+    @ExceptionHandler(EmptyListException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public @ResponseBody
+    AnswerMessageJson handleEmptyListException(EmptyListException e) {
+        LOGGER.error("Handle EmptyListException");
+        answerMessageJson.setMessage(e.getMessage());
+        answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
+        answerMessageJson.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value() + EMPTY_LIST_CODE);
         return answerMessageJson;
     }
 }
