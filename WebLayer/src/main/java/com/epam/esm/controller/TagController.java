@@ -58,13 +58,9 @@ public class TagController extends AbstractController {
     @GetMapping(produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody
-    List<TagDTO> getTagList() throws EmptyListException {
+    List<TagDTO> getTagList() {
         LOGGER.info("Getting tag list");
-        List<TagDTO> tagDTOs = tagService.getTagList();
-        if (tagDTOs.isEmpty()) {
-            throw new EmptyListException();
-        }
-        return tagDTOs;
+        return tagService.getTagList();
     }
 
     @DeleteMapping(value = "/{id}", produces = "application/json")

@@ -139,7 +139,7 @@ public class GiftCertificateDAOImpl extends AbstractDAO implements GiftCertifica
     @Transactional(rollbackFor = Exception.class)
     @Override
     public List<GiftCertificate> getCertificatesListAccordingToInputParams(Map<String, String> mapOfSearchParams) {
-        List<GiftCertificate> giftCertificates = null;
+        List<GiftCertificate> giftCertificates = new ArrayList<>();
         String tagName = mapOfSearchParams.get(TAG_NAME);
         if (Objects.nonNull(tagName)) {
             Long tagId = tagDAO.getTagIdByTagName(tagName);
