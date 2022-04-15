@@ -5,14 +5,12 @@ import com.epam.esm.exception.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.FileNotFoundException;
 
 @ControllerAdvice
+@RestController
 public class ExceptionController extends AbstractController{
 
     private static final Logger LOGGER = Logger.getLogger(ExceptionController.class);
@@ -32,8 +30,7 @@ public class ExceptionController extends AbstractController{
 
     @ExceptionHandler(value = FileNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public @ResponseBody
-    AnswerMessageJson handleFileNotFoundException(FileNotFoundException fileNotFoundException) {
+    public AnswerMessageJson handleFileNotFoundException(FileNotFoundException fileNotFoundException) {
         LOGGER.error("Handle FileNotFoundException");
         answerMessageJson.setMessage(fileNotFoundException.getMessage());
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
@@ -44,8 +41,7 @@ public class ExceptionController extends AbstractController{
 
     @ExceptionHandler(Throwable.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public @ResponseBody
-    AnswerMessageJson handleNotFoundStatusError() {
+    public AnswerMessageJson handleNotFoundStatusError() {
         LOGGER.error("Handle Throwable");
         answerMessageJson.setMessage(SOMETHING_WENT_WRONG);
         answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
@@ -55,8 +51,7 @@ public class ExceptionController extends AbstractController{
 
     @ExceptionHandler(NoSuchIdException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public @ResponseBody
-    AnswerMessageJson handleNoSuchIdException(NoSuchIdException e) {
+    public AnswerMessageJson handleNoSuchIdException(NoSuchIdException e) {
         LOGGER.error("Handle NoSuchIdException");
         answerMessageJson.setMessage(e.getMessage());
         answerMessageJson.setStatus(HttpStatus.NOT_FOUND.toString());
@@ -66,8 +61,7 @@ public class ExceptionController extends AbstractController{
 
     @ExceptionHandler(NotInsertedException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public @ResponseBody
-    AnswerMessageJson handleNotInsertedException(NotInsertedException e) {
+    public AnswerMessageJson handleNotInsertedException(NotInsertedException e) {
         LOGGER.error("Handle NotInsertedException");
         answerMessageJson.setMessage(e.getMessage());
         answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
@@ -77,8 +71,7 @@ public class ExceptionController extends AbstractController{
 
     @ExceptionHandler(AlreadyExistElementException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public @ResponseBody
-    AnswerMessageJson handleAlreadyExistElementException(AlreadyExistElementException e) {
+    public AnswerMessageJson handleAlreadyExistElementException(AlreadyExistElementException e) {
         LOGGER.error("Handle AlreadyExistElementException");
         answerMessageJson.setMessage(e.getMessage());
         answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
@@ -88,8 +81,7 @@ public class ExceptionController extends AbstractController{
 
     @ExceptionHandler(InvalidInputDataException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public @ResponseBody
-    AnswerMessageJson handleInvalidInputDataException(InvalidInputDataException e) {
+    public AnswerMessageJson handleInvalidInputDataException(InvalidInputDataException e) {
         LOGGER.error("Handle InvalidInputDataException");
         answerMessageJson.setMessage(e.getMessage());
         answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());

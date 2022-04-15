@@ -7,6 +7,7 @@ import com.epam.esm.service.TagService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +33,9 @@ public class TagController extends AbstractController {
         this.tagService = tagService;
     }
 
-    @PostMapping(produces = "application/json")
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody
-    AnswerMessageJson createTag(@Valid @RequestBody TagDTO tagDTO, BindingResult bindingResult) throws NotInsertedException, AlreadyExistElementException, InvalidInputDataException {
+    public AnswerMessageJson createTag(@Valid @RequestBody TagDTO tagDTO, BindingResult bindingResult) throws NotInsertedException, AlreadyExistElementException, InvalidInputDataException {
         LOGGER.info("Start tag creation");
         bindingResultCheck(bindingResult);
         tagService.createTag(tagDTO);
@@ -47,26 +47,23 @@ public class TagController extends AbstractController {
         return answerMessageJson;
     }
 
-    @GetMapping(value = "/{id}", produces = "application/json")
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody
-    TagDTO getTagById(@PathVariable long id) throws NoSuchIdException {
+    public TagDTO getTagById(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Getting tag by id");
         return tagService.getTagById(id);
     }
 
-    @GetMapping(produces = "application/json")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody
-    List<TagDTO> getTagList() {
+    public List<TagDTO> getTagList() {
         LOGGER.info("Getting tag list");
         return tagService.getTagList();
     }
 
-    @DeleteMapping(value = "/{id}", produces = "application/json")
+    @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody
-    AnswerMessageJson deleteTag(@PathVariable long id) throws NoSuchIdException {
+    public AnswerMessageJson deleteTag(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Tag deletion by id");
         tagService.deleteTag(id);
         HttpStatus httpStatus = HttpStatus.OK;

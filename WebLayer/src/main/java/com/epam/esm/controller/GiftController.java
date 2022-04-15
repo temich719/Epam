@@ -10,6 +10,7 @@ import com.epam.esm.service.GiftCertificateService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,10 +37,9 @@ public class GiftController extends AbstractController {
         this.giftCertificateService = giftCertificateService;
     }
 
-    @PostMapping(produces = "application/json")
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public @ResponseBody
-    AnswerMessageJson insertCertificate(@Valid @RequestBody GiftCertificateDTO giftCertificateDTO, BindingResult bindingResult) throws NotInsertedException, InvalidInputDataException {
+    public AnswerMessageJson insertCertificate(@Valid @RequestBody GiftCertificateDTO giftCertificateDTO, BindingResult bindingResult) throws NotInsertedException, InvalidInputDataException {
         LOGGER.info("Start gift certificate creation");
         bindingResultCheck(bindingResult);
         giftCertificateService.insertGiftCertificate(giftCertificateDTO);
@@ -51,26 +51,23 @@ public class GiftController extends AbstractController {
         return answerMessageJson;
     }
 
-    @GetMapping(value = "/{id}", produces = "application/json")
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody
-    GiftCertificateDTO getCertificateByID(@PathVariable long id) throws NoSuchIdException {
+    public GiftCertificateDTO getCertificateByID(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Getting certificate by id");
         return giftCertificateService.getGiftCertificateByID(id);
     }
 
-    @GetMapping(produces = "application/json")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody
-    List<GiftCertificateDTO> getCertificatesList() {
+    public List<GiftCertificateDTO> getCertificatesList() {
         LOGGER.info("Getting certificates list");
         return giftCertificateService.getGiftCertificatesDTOList();
     }
 
-    @DeleteMapping(value = "/{id}", produces = "application/json")
+    @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public @ResponseBody
-    AnswerMessageJson deleteGiftCertificate(@PathVariable long id) throws NoSuchIdException {
+    public AnswerMessageJson deleteGiftCertificate(@PathVariable long id) throws NoSuchIdException {
         LOGGER.info("Certificate deletion by id");
         giftCertificateService.deleteGiftCertificate(id);
         HttpStatus httpStatus = HttpStatus.ACCEPTED;
@@ -80,10 +77,9 @@ public class GiftController extends AbstractController {
         return answerMessageJson;
     }
 
-    @PutMapping(value = "/{id}", produces = "application/json")
+    @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody
-    AnswerMessageJson updateGiftCertificate(@PathVariable long id, @RequestBody GiftCertificateDTO giftCertificateDTO) throws NoSuchIdException {
+    public AnswerMessageJson updateGiftCertificate(@PathVariable long id, @RequestBody GiftCertificateDTO giftCertificateDTO) throws NoSuchIdException {
         LOGGER.info("Updating certificate");
         giftCertificateService.updateGiftCertificate(id, giftCertificateDTO);
         HttpStatus httpStatus = HttpStatus.OK;
@@ -93,10 +89,9 @@ public class GiftController extends AbstractController {
         return answerMessageJson;
     }
 
-    @GetMapping(value = "/search", produces = "application/json")
+    @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody
-    List<GiftCertificateDTO> searchGiftCertificate(@Valid @RequestBody SearchParamContainer searchParamContainer, BindingResult bindingResult) throws InvalidInputDataException {
+    public List<GiftCertificateDTO> searchGiftCertificate(@Valid @RequestBody SearchParamContainer searchParamContainer, BindingResult bindingResult) throws InvalidInputDataException {
         LOGGER.info("Start search certificate by params");
         bindingResultCheck(bindingResult);
         List<GiftCertificateDTO> giftCertificateDTOs = giftCertificateService.getCertificatesDTOListAccordingToInputParams(searchParamContainer.getMapOfSearchParams());
