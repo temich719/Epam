@@ -24,7 +24,6 @@ public class ExceptionController extends AbstractController{
     private static final String NOT_INSERTED_CODE = "23";
     private static final String ALREADY_EXIST_ELEMENT_CODE = "24";
     private static final String INVALID_INPUT_DATE_CODE = "25";
-    private static final String EMPTY_LIST_CODE = "26";
 
     @Autowired
     public ExceptionController(AnswerMessageJson answerMessageJson) {
@@ -95,17 +94,6 @@ public class ExceptionController extends AbstractController{
         answerMessageJson.setMessage(e.getMessage());
         answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
         answerMessageJson.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value() + INVALID_INPUT_DATE_CODE);
-        return answerMessageJson;
-    }
-
-    @ExceptionHandler(EmptyListException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public @ResponseBody
-    AnswerMessageJson handleEmptyListException(EmptyListException e) {
-        LOGGER.error("Handle EmptyListException");
-        answerMessageJson.setMessage(e.getMessage());
-        answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
-        answerMessageJson.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value() + EMPTY_LIST_CODE);
         return answerMessageJson;
     }
 }

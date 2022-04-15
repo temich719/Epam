@@ -2,7 +2,6 @@ package com.epam.esm.controller;
 
 import com.epam.esm.dtos.GiftCertificateDTO;
 import com.epam.esm.errors.AnswerMessageJson;
-import com.epam.esm.exception.EmptyListException;
 import com.epam.esm.exception.InvalidInputDataException;
 import com.epam.esm.exception.NoSuchIdException;
 import com.epam.esm.exception.NotInsertedException;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/certificates")
@@ -64,13 +62,9 @@ public class GiftController extends AbstractController {
     @GetMapping(produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody
-    List<GiftCertificateDTO> getCertificatesList() throws EmptyListException {
+    List<GiftCertificateDTO> getCertificatesList() {
         LOGGER.info("Getting certificates list");
-        List<GiftCertificateDTO> giftCertificateDTOs = giftCertificateService.getGiftCertificatesDTOList();
-        if (giftCertificateDTOs.isEmpty()) {
-            throw new EmptyListException();
-        }
-        return giftCertificateDTOs;
+        return giftCertificateService.getGiftCertificatesDTOList();
     }
 
     @DeleteMapping(value = "/{id}", produces = "application/json")
@@ -102,13 +96,10 @@ public class GiftController extends AbstractController {
     @GetMapping(value = "/search", produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody
-    List<GiftCertificateDTO> searchGiftCertificate(@Valid @RequestBody SearchParamContainer searchParamContainer, BindingResult bindingResult) throws InvalidInputDataException, EmptyListException {
+    List<GiftCertificateDTO> searchGiftCertificate(@Valid @RequestBody SearchParamContainer searchParamContainer, BindingResult bindingResult) throws InvalidInputDataException {
         LOGGER.info("Start search certificate by params");
         bindingResultCheck(bindingResult);
         List<GiftCertificateDTO> giftCertificateDTOs = giftCertificateService.getCertificatesDTOListAccordingToInputParams(searchParamContainer.getMapOfSearchParams());
-        if (Objects.isNull(giftCertificateDTOs)) {
-            throw new EmptyListException();
-        }
         LOGGER.info("Certificate has been found by params");
         return giftCertificateDTOs;
     }
