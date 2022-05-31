@@ -2,192 +2,211 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.AbstractDAO;
 import com.epam.esm.dao.GiftCertificateDAO;
-import com.epam.esm.dao.TagDAO;
 import com.epam.esm.dateiniso.DateGenerator;
 import com.epam.esm.domain.GiftCertificate;
-import com.epam.esm.jdbcmappers.GiftCertificateMapper;
+import com.epam.esm.domain.Tag;
+import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.sqlbuilder.SQLBuilder;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.*;
 import java.util.*;
+
+import static com.epam.esm.stringsstorage.RepositoryStringsStorage.*;
 
 @Repository
 public class GiftCertificateDAOImpl extends AbstractDAO implements GiftCertificateDAO {
 
-    private static final String SELECT_COUNT_FROM_GIFT_CERTIFICATES_BY_ID = "SELECT COUNT(*) FROM gift_certificate WHERE id = ?;";
-    private static final String SELECT_ALL_FROM_GIFT_CERTIFICATES_BY_ID = "SELECT * FROM gift_certificate WHERE id = ?;";
-    private static final String SELECT_ALL_FROM_GIFT_CERTIFICATES = "SELECT * FROM gift_certificate;";
-    private static final String DELETE_FROM_CERTIFICATES_AND_TAGS_BY_ID = "DELETE FROM certificates_and_tags WHERE gift_certificate_id = ?;";
-    private static final String DELETE_FROM_GIFT_CERTIFICATES_BY_ID = "DELETE FROM gift_certificate WHERE id = ?;";
-    private static final String UPDATE_GIFT_CERTIFICATE_NAME_BY_ID = "UPDATE gift_certificate SET name = ? WHERE id = ?;";
-    private static final String UPDATE_GIFT_CERTIFICATE_DESCRIPTION_BY_ID = "UPDATE gift_certificate SET description = ? WHERE id = ?;";
-    private static final String UPDATE_GIFT_CERTIFICATE_PRICE_BY_ID = "UPDATE gift_certificate SET price = ? WHERE id = ?;";
-    private static final String UPDATE_GIFT_CERTIFICATE_DURATION_BY_ID = "UPDATE gift_certificate SET duration = ? WHERE id = ?;";
-    private static final String UPDATE_GIFT_CERTIFICATE_LAST_UPDATE_DATE_BY_ID = "UPDATE gift_certificate SET last_update_date = ? WHERE id = ?;";
-    private static final String SELECT_LAST_GIFT_CERTIFICATE_ID = "SELECT id FROM gift_certificate ORDER BY id DESC limit 1;";
-    private static final String SELECT_GIFT_CERTIFICATE_ID_BY_TAG_ID = "SELECT gift_certificate_id FROM certificates_and_tags WHERE tag_id = ?";
-    private static final String INSERT_INTO_MANY_TO_MANY_TABLE = "INSERT INTO certificates_and_tags (gift_certificate_id, tag_id) VALUES (?, ?);";
-    private static final String INSERT_GIFT_CERTIFICATE = "INSERT INTO gift_certificate (name, description, price," +
-            " duration, create_date, last_update_date) " +
-            "VALUES (?, ?, ?, ?, ?, ?);";
-    private static final String TAG_NAME = "tagName";
-
-    private final TagDAO tagDAO;
     private final DateGenerator dateGenerator;
-    private final GiftCertificateMapper giftCertificateMapper;
     private final SQLBuilder sqlBuilder;
 
     @Autowired
-    public GiftCertificateDAOImpl(JdbcTemplate jdbcTemplate, TagDAO tagDAO, DateGenerator dateGenerator, GiftCertificateMapper giftCertificateMapper, SQLBuilder sqlBuilder) {
-        super(jdbcTemplate);
-        this.tagDAO = tagDAO;
+    public GiftCertificateDAOImpl(SessionFactory sessionFactory, DateGenerator dateGenerator, SQLBuilder sqlBuilder) {
+        super(sessionFactory);
         this.dateGenerator = dateGenerator;
-        this.giftCertificateMapper = giftCertificateMapper;
         this.sqlBuilder = sqlBuilder;
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public int insertGiftCertificate(GiftCertificate giftCertificate) {
-        tagDAO.addNewTagFromGiftCertificate(giftCertificate);
+    public GiftCertificate read(long id) {
+        Session session = sessionFactory.getCurrentSession();
+        return session.get(GiftCertificate.class, id);
+    }
+
+    @Override
+    public List<GiftCertificate> getCertificatesBySeveralTags(List<Tag> tags, int page, int size) {
+        String sql = sqlBuilder.createGetCertificatesByTagsSQL(tags, page, size);
+        return sessionFactory.getCurrentSession().createNativeQuery(sql, GiftCertificate.class).getResultList();
+    }
+
+    @Override
+    public List<GiftCertificate> readAll(int page, int size) {
+        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
+        Root<GiftCertificate> root = criteriaQuery.from(GiftCertificate.class);
+        criteriaQuery.select(root);
+        Query<GiftCertificate> query = session.createQuery(criteriaQuery);
+        query.setFirstResult((page - 1) * size);
+        query.setMaxResults(size);
+        return query.getResultList();
+    }
+
+    @Override
+    public List<GiftCertificate> getCertificatesListAccordingToInputParams(Map<String, String> mapOfSearchParams, int page, int size) {
+        Session session = sessionFactory.getCurrentSession();
+        List<GiftCertificate> giftCertificates = null;
+        String tagName = mapOfSearchParams.get(TAG_NAME);
+        Tag tag = getTagByName(tagName);
+        if (Objects.nonNull(tag)) {
+            String sql = sqlBuilder.createSearchSQL(mapOfSearchParams, getCertificateIdsByTag(tag), page, size);
+            giftCertificates = session.createNativeQuery(sql, GiftCertificate.class).getResultList();
+        }
+        return giftCertificates;
+    }
+
+    @Override
+    public void insert(GiftCertificate giftCertificate) {
+        Session session = sessionFactory.getCurrentSession();
+        Set<Tag> tags = new HashSet<>();
+        for (Tag tag : giftCertificate.getTags()) {
+            if (getTagCountByName(tag).equals(0L)) {
+                tags.add(tag);
+                session.save(tag);
+            } else {
+                Tag existingTag = getTagByName(tag.getName());
+                tags.add(existingTag);
+            }
+        }
+        giftCertificate.setTags(tags);
         String dateAsISO = dateGenerator.getCurrentDateAsISO();
         giftCertificate.setCreateDate(dateAsISO);
         giftCertificate.setLastUpdateDate(dateAsISO);
-
-        int countOfUpdatedColumns = jdbcTemplate.update(INSERT_GIFT_CERTIFICATE, giftCertificate.getName(),
-                giftCertificate.getDescription(), giftCertificate.getPrice(), giftCertificate.getDuration(),
-                giftCertificate.getCreateDate(), giftCertificate.getLastUpdateDate());
-
-        Long lastGiftCertificateId = selectLastGiftCertificateId();
-        List<Long> tagIds = tagDAO.getTagIdsListByGiftCertificate(giftCertificate);
-        insertTagIdsAndGiftCertificateIdToManyToManyTable(lastGiftCertificateId, tagIds);
-        return countOfUpdatedColumns;
+        session.save(giftCertificate);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public GiftCertificate getGiftCertificateByID(long id) {
-        GiftCertificate giftCertificate;
-        if (isIdExists(id)) {
-            giftCertificate = jdbcTemplate.queryForObject(SELECT_ALL_FROM_GIFT_CERTIFICATES_BY_ID,
-                    giftCertificateMapper, id);
-            if (Objects.nonNull(giftCertificate)) {
-                giftCertificate.setTags(tagDAO.getTagSetByGiftCertificateId(id));
-            }
+    public void delete(long id) throws RepositoryException {
+        Session session = sessionFactory.getCurrentSession();
+        try {
+            GiftCertificate giftCertificate = getCertificateById(id);
+            session.delete(giftCertificate);
+        } catch (NoResultException e) {
+            throw new RepositoryException();
+        }
+    }
+
+    @Override
+    public void update(long id, GiftCertificate giftCertificate) throws RepositoryException {
+        Session session = sessionFactory.getCurrentSession();
+        GiftCertificate existingCertificate;
+        try {
+            existingCertificate = getCertificateById(id);
+        } catch (NoResultException e) {
+            throw new RepositoryException();
+        }
+        session.detach(existingCertificate);
+        if (Objects.isNull(giftCertificate.getName())) {
+            giftCertificate.setName(existingCertificate.getName());
+        }
+        if (Objects.isNull(giftCertificate.getDescription())) {
+            giftCertificate.setDescription(existingCertificate.getDescription());
+        }
+        if (Objects.isNull(giftCertificate.getPrice())) {
+            giftCertificate.setPrice(existingCertificate.getPrice());
+        }
+        if (Objects.isNull(giftCertificate.getDuration())) {
+            giftCertificate.setDuration(existingCertificate.getDuration());
+        }
+        giftCertificate.setCreateDate(existingCertificate.getCreateDate());
+        giftCertificate.setLastUpdateDate(dateGenerator.getCurrentDateAsISO());
+        Set<Tag> tags = new HashSet<>();
+        if (Objects.isNull(giftCertificate.getTags()) || giftCertificate.getTags().isEmpty()) {
+            giftCertificate.setTags(existingCertificate.getTags());
         } else {
-            giftCertificate = null;
+            for (Tag tag : giftCertificate.getTags()) {
+                if (getTagCountByName(tag).equals(0L)) {
+                    tags.add(tag);
+                    session.save(tag);
+                } else {
+                    Tag existingTag = getTagByName(tag.getName());
+                    tags.add(existingTag);
+                    session.update(existingTag);
+                }
+            }
+            giftCertificate.setTags(tags);
         }
-        return giftCertificate;
+        giftCertificate.setId(id);
+        session.update(giftCertificate);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public List<GiftCertificate> getGiftCertificatesList() {
-        List<GiftCertificate> giftCertificates = jdbcTemplate.query(SELECT_ALL_FROM_GIFT_CERTIFICATES, giftCertificateMapper);
-        setTagsToGiftCertificate(giftCertificates);
-        return giftCertificates;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public int deleteGiftCertificate(long id) {
-        int countOfDeletedCertificates = 0;
-        if (isIdExists(id)) {
-            deleteFromManyToManyTableByGiftCertificateId(id);
-            countOfDeletedCertificates = jdbcTemplate.update(DELETE_FROM_GIFT_CERTIFICATES_BY_ID, id);
-        }
-        return countOfDeletedCertificates;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public int updateGiftCertificate(long id, GiftCertificate giftCertificate) {
-        int updatedFieldsCount = 0;
-        if (isIdExists(id)) {
-            String updateDate = dateGenerator.getCurrentDateAsISO();
-            if (Objects.nonNull(giftCertificate.getTags()) && !giftCertificate.getTags().isEmpty()) {
-                tagDAO.addNewTagFromGiftCertificate(giftCertificate);
-                updateTagsInManyToManyTable(id, tagDAO.getTagIdsListByGiftCertificate(giftCertificate));
-                updatedFieldsCount++;
-            }
-            if (Objects.nonNull(giftCertificate.getName())) {
-                jdbcTemplate.update(UPDATE_GIFT_CERTIFICATE_NAME_BY_ID, giftCertificate.getName(), id);
-                updatedFieldsCount++;
-            }
-            if (Objects.nonNull(giftCertificate.getDescription())) {
-                jdbcTemplate.update(UPDATE_GIFT_CERTIFICATE_DESCRIPTION_BY_ID, giftCertificate.getDescription(), id);
-                updatedFieldsCount++;
-            }
-            if (Objects.nonNull(giftCertificate.getPrice())) {
-                jdbcTemplate.update(UPDATE_GIFT_CERTIFICATE_PRICE_BY_ID, giftCertificate.getPrice(), id);
-                updatedFieldsCount++;
-            }
-            if (Objects.nonNull(giftCertificate.getDuration())) {
-                jdbcTemplate.update(UPDATE_GIFT_CERTIFICATE_DURATION_BY_ID, giftCertificate.getDuration(), id);
-                updatedFieldsCount++;
-            }
-            if (updatedFieldsCount != 0) {
-                jdbcTemplate.update(UPDATE_GIFT_CERTIFICATE_LAST_UPDATE_DATE_BY_ID, updateDate, id);
+    public List<GiftCertificate> getFilteredCertificateList(MultiValueMap<String, Object> params) {
+        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
+        Root<GiftCertificate> root = criteriaQuery.from(GiftCertificate.class);
+        criteriaQuery.select(root);
+        for (String key : params.keySet()) {
+            if (!key.equals(PAGE) && !key.equals(SIZE)) {
+                criteriaQuery.where(criteriaBuilder.equal(root.get(key), params.getFirst(key)));
             }
         }
-        return updatedFieldsCount;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public List<GiftCertificate> getCertificatesListAccordingToInputParams(Map<String, String> mapOfSearchParams) {
-        List<GiftCertificate> giftCertificates = new ArrayList<>();
-        String tagName = mapOfSearchParams.get(TAG_NAME);
-        if (Objects.nonNull(tagName)) {
-            Long tagId = tagDAO.getTagIdByTagName(tagName);
-            if (Objects.nonNull(tagId)) {
-                String sql = sqlBuilder.createSearchSQL(mapOfSearchParams, getCertificateIdsByTagId(tagId));
-                giftCertificates = jdbcTemplate.query(sql, giftCertificateMapper);
-                setTagsToGiftCertificate(giftCertificates);
-            }
+        Query<GiftCertificate> query = session.createQuery(criteriaQuery);
+        if (params.containsKey(PAGE)) {
+            int size = Integer.parseInt(String.valueOf(params.getFirst(SIZE)));
+            int firstResult = (Integer.parseInt(String.valueOf(params.getFirst(PAGE))) - 1) * size;
+            query.setFirstResult(firstResult);
+            query.setMaxResults(size);
         }
-        return giftCertificates;
+        return query.getResultList();
     }
 
-    private Long selectLastGiftCertificateId() {
-        return jdbcTemplate.queryForObject(SELECT_LAST_GIFT_CERTIFICATE_ID, Long.class);
+    private Long getTagCountByName(Tag tag) {
+        CriteriaBuilder criteriaBuilder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+        Root<Tag> root = criteriaQuery.from(Tag.class);
+        criteriaQuery.select(criteriaBuilder.count(root));
+        criteriaQuery.where(criteriaBuilder.equal(root.get(NAME), tag.getName()));
+        return sessionFactory.createEntityManager().createQuery(criteriaQuery).getSingleResult();
     }
 
-    private void insertTagIdsAndGiftCertificateIdToManyToManyTable(Long giftCertificateId, List<Long> tagIds) {
-        for (Long tagId : tagIds) {
-            jdbcTemplate.update(INSERT_INTO_MANY_TO_MANY_TABLE, giftCertificateId, tagId);
+    private Tag getTagByName(String tagName) {
+        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<Tag> criteriaQuery = criteriaBuilder.createQuery(Tag.class);
+        Root<Tag> root = criteriaQuery.from(Tag.class);
+        ParameterExpression<String> parameterExpression = criteriaBuilder.parameter(String.class);
+        criteriaQuery.select(root).where(criteriaBuilder.equal(root.get(NAME), parameterExpression));
+        Query<Tag> query = session.createQuery(criteriaQuery);
+        query.setParameter(parameterExpression, tagName);
+        return query.getSingleResult();
+    }
+
+    private GiftCertificate getCertificateById(long id) {
+        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
+        Root<GiftCertificate> root = criteriaQuery.from(GiftCertificate.class);
+        ParameterExpression<Long> parameterExpression = criteriaBuilder.parameter(Long.class);
+        criteriaQuery.select(root).where(criteriaBuilder.equal(root.get(ID), parameterExpression));
+        Query<GiftCertificate> query = session.createQuery(criteriaQuery);
+        query.setParameter(parameterExpression, id);
+        return query.getSingleResult();
+    }
+
+    private List<Long> getCertificateIdsByTag(Tag tag) {
+        List<Long> giftCertificatesIds = new ArrayList<>();
+        for (GiftCertificate giftCertificate : tag.getGiftCertificates()) {
+            giftCertificatesIds.add(giftCertificate.getId());
         }
-    }
-
-    private void updateTagsInManyToManyTable(long giftCertificateId, List<Long> tagIds) {
-        deleteFromManyToManyTableByGiftCertificateId(giftCertificateId);
-        insertTagIdsAndGiftCertificateIdToManyToManyTable(giftCertificateId, tagIds);
-    }
-
-    private void deleteFromManyToManyTableByGiftCertificateId(long id) {
-        jdbcTemplate.update(DELETE_FROM_CERTIFICATES_AND_TAGS_BY_ID, id);
-    }
-
-    private List<Long> getCertificateIdsByTagId(Long tagId) {
-        return jdbcTemplate.queryForList(SELECT_GIFT_CERTIFICATE_ID_BY_TAG_ID, Long.class, tagId);
-    }
-
-    private void setTagsToGiftCertificate(List<GiftCertificate> giftCertificates) {
-        for (GiftCertificate giftCertificate : giftCertificates) {
-            giftCertificate.setTags(tagDAO.getTagSetByGiftCertificateId(giftCertificate.getId()));
-        }
-    }
-
-    private boolean isIdExists(long id) {
-        boolean isExist = false;
-        Integer idsCount = jdbcTemplate.queryForObject(SELECT_COUNT_FROM_GIFT_CERTIFICATES_BY_ID, Integer.class, id);
-        if (Objects.nonNull(idsCount) && idsCount != 0) {
-            isExist = true;
-        }
-        return isExist;
+        return giftCertificatesIds;
     }
 
 }

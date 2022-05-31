@@ -1,19 +1,71 @@
 package com.epam.esm.util;
 
-import com.epam.esm.dtos.GiftCertificateDTO;
-import com.epam.esm.dtos.TagDTO;
 import com.epam.esm.domain.GiftCertificate;
+import com.epam.esm.domain.Order;
 import com.epam.esm.domain.Tag;
+import com.epam.esm.domain.User;
+import com.epam.esm.dtos.*;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
 public class Mapper {
+
+    public List<UserDTO> mapToUserDTOList(List<User> users) {
+        return users.stream().map(this::mapToUserDTO).collect(Collectors.toList());
+    }
+
+    public List<Tag> mapToTagList(List<TagDTO> tagDTOs) {
+        return tagDTOs.stream().map(this::mapToTag).collect(Collectors.toList());
+    }
+
+    public UserHighestOrdersCostDTO mapToUserHighestOrdersCostDTOFromUser(User user) {
+        UserHighestOrdersCostDTO userHighestOrdersCostDTO = new UserHighestOrdersCostDTO();
+        userHighestOrdersCostDTO.setId(user.getId());
+        userHighestOrdersCostDTO.setUserName(user.getUserName());
+        userHighestOrdersCostDTO.setSum(user.getSum());
+        userHighestOrdersCostDTO.setTagDTOs(mapToTagDTOList(user.getTags()));
+        return userHighestOrdersCostDTO;
+    }
+
+    public DateAndTimeOrderDTO mapToDateTimeOrderDTO(Order order) {
+        DateAndTimeOrderDTO dateAndTimeOrderDTO = new DateAndTimeOrderDTO();
+        dateAndTimeOrderDTO.setDate(order.getDate());
+        dateAndTimeOrderDTO.setCost(order.getCost());
+        return dateAndTimeOrderDTO;
+    }
+
+    public Order mapToOrder(OrderDTO orderDTO) {
+        Order order = new Order();
+        order.setUser(userNameDTOMapToUser(orderDTO.getUserNameDTO()));
+        return order;
+    }
+
+    public User userNameDTOMapToUser(UserNameDTO userNameDTO) {
+        return new User(userNameDTO.getUserName());
+    }
+
+    public UserDTO mapToUserDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserName(user.getUserName());
+        List<AnswerOrderDTO> answerOrderDTOs = new ArrayList<>();
+        for (Order order : user.getOrders()) {
+            answerOrderDTOs.add(mapToAnswerOrderDTO(order));
+        }
+        userDTO.setOrderDTOs(answerOrderDTOs);
+        return userDTO;
+    }
+
+    public AnswerOrderDTO mapToAnswerOrderDTO(Order order) {
+        AnswerOrderDTO answerOrderDTO = new AnswerOrderDTO();
+        answerOrderDTO.setId(order.getId());
+        answerOrderDTO.setCost(order.getCost());
+        answerOrderDTO.setDate(order.getDate());
+        answerOrderDTO.setGiftCertificateDTOs(mapToGiftCertificateDTOList(order.getGiftCertificates()));
+        return answerOrderDTO;
+    }
 
     public TagDTO mapToTagDTO(Tag tag) {
         TagDTO tagDTO = new TagDTO();

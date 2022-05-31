@@ -17,26 +17,32 @@ import java.util.Map;
 @Component
 public class SearchParamContainer {
 
-    @NotNull(message = "Please input tag name")
-    @NotEmpty(message = "Name should not be empty")
+    private static final String TAG_NAME = "tagName";
+    private static final String NAME_PART = "namePart";
+    private static final String DESCRIPTION_PART = "descriptionPart";
+    private static final String SORT_BY_NAME = "sortByName";
+    private static final String SORT_BY_DATE = "sortByDate";
+
+    @NotNull(message = "{com.epam.esm.constraint.name.message}")
+    @NotEmpty(message = "{com.epam.esm.constraint.nameIsEmpty}")
     String tagName;
 
     String namePart;
     String descriptionPart;
 
-    @Pattern(regexp = "asc|desc", message = "Sort can be executed only with acs or desc params")
+    @Pattern(regexp = "asc|desc", message = "{com.epam.esm.constraint.sort}")
     String sortByName;
 
-    @Pattern(regexp = "asc|desc", message = "Sort can be executed only with acs or desc params")
+    @Pattern(regexp = "asc|desc", message = "{com.epam.esm.constraint.sort}")
     String sortByDate;
 
     public Map<String, String> getMapOfSearchParams() {
         Map<String, String> mapOfSearchParams = new HashMap<>();
-        mapOfSearchParams.put("tagName", tagName);
-        mapOfSearchParams.put("namePart", namePart);
-        mapOfSearchParams.put("descriptionPart", descriptionPart);
-        mapOfSearchParams.put("sortByName", sortByName);
-        mapOfSearchParams.put("sortByDate", sortByDate);
+        mapOfSearchParams.put(TAG_NAME, tagName);
+        mapOfSearchParams.put(NAME_PART, namePart);
+        mapOfSearchParams.put(DESCRIPTION_PART, descriptionPart);
+        mapOfSearchParams.put(SORT_BY_NAME, sortByName);
+        mapOfSearchParams.put(SORT_BY_DATE, sortByDate);
         return mapOfSearchParams;
     }
 }

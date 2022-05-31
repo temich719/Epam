@@ -1,56 +1,56 @@
 package com.epam.esm.config;
 
-import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
-import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.TimeZone;
-
-import static com.epam.esm.stringsstorage.RepositoryStringsStorage.*;
 
 @Configuration
 @Profile("prod")
 @EnableTransactionManagement
-@ComponentScan("com.epam.esm")
-@PropertySource("classpath:databaseConfig.properties")
+@EnableJpaAuditing
 public class RepositoryConfig {
 
-    private final Environment environment;
+    private final DataSource dataSource;
 
     @Autowired
-    public RepositoryConfig(Environment environment) {
-        this.environment = environment;
+    public RepositoryConfig(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Bean
-    public DataSource getDataSource() {
-        final HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setMaximumPoolSize(Integer.parseInt(Objects.requireNonNull(environment.getProperty(PROD_DATABASE_POOL_SIZE))));
-        dataSource.setDriverClassName(environment.getProperty(DRIVER));
-        dataSource.setJdbcUrl(environment.getProperty(URL));
-        dataSource.setUsername(environment.getProperty(USER));
-        dataSource.setPassword(environment.getProperty(PASSWORD));
-        return dataSource;
+    public LocalSessionFactoryBean sessionFactory() {
+        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+        sessionFactory.setDataSource(dataSource);
+        sessionFactory.setPackagesToScan("com.epam.esm");
+        sessionFactory.setHibernateProperties(hibernateProperties());
+        return sessionFactory;
     }
 
     @Bean
-    public DataSourceTransactionManager getTransactionManager() {
-        return new DataSourceTransactionManager(getDataSource());
+    public PlatformTransactionManager hibernateTransactionManager() {
+        final HibernateTransactionManager transactionManager = new HibernateTransactionManager();
+        transactionManager.setSessionFactory(sessionFactory().getObject());
+        return transactionManager;
     }
 
-    @Bean
-    public JdbcTemplate getJdbcTemplate() {
-        return new JdbcTemplate(getDataSource());
+    private Properties hibernateProperties() {
+        Properties hibernateProperties = new Properties();
+        hibernateProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
+        return hibernateProperties;
     }
 
     @Bean
@@ -73,4 +73,5 @@ public class RepositoryConfig {
     public ApplicationContext getApplicationContext() {
         return new AnnotationConfigApplicationContext();
     }
+
 }

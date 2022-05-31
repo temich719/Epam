@@ -1,5 +1,5 @@
-rootProject.name = 'SpringMVC-2.1'
-include 'WebLayer'
-include 'Service'
+rootProject.name = 'RestApi'
 include 'Repository'
+include 'Service'
+include 'WebLayer'
 

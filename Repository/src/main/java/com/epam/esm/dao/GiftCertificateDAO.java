@@ -1,6 +1,9 @@
 package com.epam.esm.dao;
 
 import com.epam.esm.domain.GiftCertificate;
+import com.epam.esm.domain.Tag;
+import com.epam.esm.exception.RepositoryException;
+import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 import java.util.Map;
@@ -8,51 +11,72 @@ import java.util.Map;
 public interface GiftCertificateDAO {
 
     /**
-     * inserts GiftCertificate object to gift_certificate table
+     * gets certificate by id
      *
-     * @param giftCertificate is a GiftCertificate object
-     * @return count of inserted lines
+     * @param id is the id of certificate that is wished to be gotten
+     * @return gift certificate with required id
      */
-    int insertGiftCertificate(GiftCertificate giftCertificate);
+    GiftCertificate read(long id);
 
     /**
-     * finds GiftCertificate in database according to given id
+     * gets all certificates
      *
-     * @param id is the GiftCertificate id
-     * @return GiftCertificate object that has the same id as given one's
+     * @param page is the number of page
+     * @param size is the size of page
+     * @return list of gift certificates
      */
-    GiftCertificate getGiftCertificateByID(long id);
+    List<GiftCertificate> readAll(int page, int size);
 
     /**
-     * finds all existing GiftCertificate objects in database
+     * inserts new certificate to database
      *
-     * @return list of all GiftCertificate objects
+     * @param giftCertificate is the gift certificate that is wished to be inserted
      */
-    List<GiftCertificate> getGiftCertificatesList();
+    void insert(GiftCertificate giftCertificate);
 
     /**
-     * deletes GiftCertificate according to given id
+     * deletes gift certificate
      *
-     * @param id is the GiftCertificate id
-     * @return count of deleted lines
+     * @param id the id of certificate that will be deleted
+     * @throws RepositoryException is the module exception
      */
-    int deleteGiftCertificate(long id);
+    void delete(long id) throws RepositoryException;
 
     /**
-     * updates GiftCertificate info
+     * updates gift certificate
      *
-     * @param id              is the id of GiftCertificate that need to be updated
+     * @param id              the id of gift certificate that needs to be updated
      * @param giftCertificate is the object that contains new data
-     * @return count of updated fields
+     * @throws RepositoryException is the module exception
      */
-    int updateGiftCertificate(long id, GiftCertificate giftCertificate);
+    void update(long id, GiftCertificate giftCertificate) throws RepositoryException;
 
     /**
-     * finds GiftCertificate objects according to given params
+     * gets certificates according to params that was inputted by the user
      *
-     * @param mapOfSearchParams is the map of searching params
-     * @return list of GiftCertificate objects that are corresponding given params
+     * @param mapOfSearchParams is the map of params
+     * @param page              is the page
+     * @param size              is the size of page
+     * @return list of certificates that fit the input params
      */
-    List<GiftCertificate> getCertificatesListAccordingToInputParams(Map<String, String> mapOfSearchParams);
+    List<GiftCertificate> getCertificatesListAccordingToInputParams(Map<String, String> mapOfSearchParams, int page, int size);
+
+    /**
+     * gets list of certificates by several tags
+     *
+     * @param tags is the list of tags
+     * @param page is the page
+     * @param size is the size of page
+     * @return list of certificates that have tags which were inputted by the user
+     */
+    List<GiftCertificate> getCertificatesBySeveralTags(List<Tag> tags, int page, int size);
+
+    /**
+     * gets filtered list of certificates
+     *
+     * @param params the params by which certificates will be filtered
+     * @return list of filtered certificates
+     */
+    List<GiftCertificate> getFilteredCertificateList(MultiValueMap<String, Object> params);
 
 }

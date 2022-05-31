@@ -1,10 +1,9 @@
 package com.epam.esm.sqlbuilder;
 
+import com.epam.esm.domain.Tag;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 public class SQLBuilder {
@@ -28,7 +27,34 @@ public class SQLBuilder {
     private static final String PLUS_CREATE_DATE = ", create_date ";
     private static final String SEMICOLON = ";";
 
-    public String createSearchSQL(Map<String, String> mapOfSearchParams, List<Long> giftCertificateIds) {
+    private static final String SELECT_CERTIFICATE_BY_TAGS = "select gift_certificate.id, " +
+            "gift_certificate.name, description, price, duration, create_date, last_update_date, " +
+            "gift_certificate.creationEntityDate, gift_certificate.modificationEntityDate, gift_certificate.createdEntityBy, \n" +
+            "gift_certificate.modifiedEntityBy \n" +
+            "from gift_certificate join certificates_and_tags cat on gift_certificate.id = cat.gift_certificate_id\n" +
+            "join tag t on cat.tag_id = t.id\n" +
+            "where ";
+    private static final String TAG_NAME = "t.name = ";
+    private static final String OR_TAG = " or ";
+    private static final String GROUP_BY = " group by gift_certificate.id having count(t.name) = ";
+    private static final String LIMIT = " limit ";
+    private static final String OFFSET = " offset ";
+    private static final String QUOTE = "'";
+
+    public String createGetCertificatesByTagsSQL(List<Tag> tags, int page, int size) {
+        StringBuilder sql = new StringBuilder(SELECT_CERTIFICATE_BY_TAGS);
+
+        for (int i = 0; i < tags.size() - 1; i++) {
+            sql.append(TAG_NAME).append(QUOTE).append(tags.get(i).getName()).append(QUOTE).append(OR_TAG);
+        }
+        sql.append(TAG_NAME).append(QUOTE).append(tags.get(tags.size() - 1).getName()).append(QUOTE);
+        sql.append(GROUP_BY).append(tags.size()).append(LIMIT).append(size)
+                .append(OFFSET).append((page - 1) * size).append(SEMICOLON);
+        return sql.toString();
+    }
+
+
+    public String createSearchSQL(Map<String, String> mapOfSearchParams, List<Long> giftCertificateIds, int page, int size) {
         StringBuilder sql = new StringBuilder(SELECT_FROM_GIFT_CERTIFICATES_WHERE);
 
         if (giftCertificateIds.size() == 1) {
@@ -71,7 +97,7 @@ public class SQLBuilder {
             }
         }
 
-        sql.append(SEMICOLON);
+        sql.append(LIMIT).append(size).append(OFFSET).append((page - 1) * size).append(SEMICOLON);
 
         return sql.toString();
     }
