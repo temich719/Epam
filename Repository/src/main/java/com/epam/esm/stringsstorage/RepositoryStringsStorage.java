@@ -13,4 +13,10 @@ public class RepositoryStringsStorage {
     public static final String DURATION = "duration";
     public static final String CREATE_DATE = "create_date";
     public static final String LAST_UPDATE_DATE = "last_update_date";
+    public static final String TAG_NAME = "tagName";
+    public static final String PAGE = "page";
+    public static final String SIZE = "size";
+    public static final String DATE = "date";
+    public static final String COST = "cost";
+    public static final String USER_NAME = "userName";
 }

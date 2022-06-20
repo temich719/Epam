@@ -5,37 +5,39 @@ import com.epam.esm.exception.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
-import java.io.FileNotFoundException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @ControllerAdvice
 @RestController
-public class ExceptionController extends AbstractController{
+public class ExceptionController extends AbstractController {
 
     private static final Logger LOGGER = Logger.getLogger(ExceptionController.class);
 
     private static final String SOMETHING_WENT_WRONG = "Something went wrong!";
-    private static final String FILE_NOT_FOUND_CODE = "20";
     private static final String SOMETHING_WENT_WRONG_CODE = "21";
     private static final String NO_SUCH_ID_CODE = "22";
     private static final String NOT_INSERTED_CODE = "23";
-    private static final String ALREADY_EXIST_ELEMENT_CODE = "24";
     private static final String INVALID_INPUT_DATE_CODE = "25";
+    private static final String SERVICE_EXCEPTION_CODE = "26";
+
+    private static final HttpStatus httpStatusNotFound = HttpStatus.NOT_FOUND;
+    private static final HttpStatus httpStatusInternalServerError = HttpStatus.INTERNAL_SERVER_ERROR;
 
     @Autowired
     public ExceptionController(AnswerMessageJson answerMessageJson) {
         super(answerMessageJson);
     }
 
-    @ExceptionHandler(value = FileNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public AnswerMessageJson handleFileNotFoundException(FileNotFoundException fileNotFoundException) {
-        LOGGER.error("Handle FileNotFoundException");
-        answerMessageJson.setMessage(fileNotFoundException.getMessage());
-        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
-        answerMessageJson.setStatus(httpStatus.toString());
-        answerMessageJson.setCode(httpStatus.value() + FILE_NOT_FOUND_CODE);
+    @ExceptionHandler(value = ServiceException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public AnswerMessageJson handleServiceException(ServiceException e) {
+        LOGGER.error("Handle ServiceException");
+        answerMessageJson.setMessage(e.getMessage());
+        answerMessageJson.setStatus(httpStatusInternalServerError.toString());
+        answerMessageJson.setCode(httpStatusInternalServerError.value() + SERVICE_EXCEPTION_CODE);
         return answerMessageJson;
     }
 
@@ -53,9 +55,9 @@ public class ExceptionController extends AbstractController{
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public AnswerMessageJson handleNoSuchIdException(NoSuchIdException e) {
         LOGGER.error("Handle NoSuchIdException");
-        answerMessageJson.setMessage(e.getMessage());
-        answerMessageJson.setStatus(HttpStatus.NOT_FOUND.toString());
-        answerMessageJson.setCode(HttpStatus.NOT_FOUND.value() + NO_SUCH_ID_CODE);
+        answerMessageJson.setMessage(e.getLocalizedMessage());
+        answerMessageJson.setStatus(httpStatusNotFound.toString());
+        answerMessageJson.setCode(httpStatusNotFound.value() + NO_SUCH_ID_CODE);
         return answerMessageJson;
     }
 
@@ -64,18 +66,8 @@ public class ExceptionController extends AbstractController{
     public AnswerMessageJson handleNotInsertedException(NotInsertedException e) {
         LOGGER.error("Handle NotInsertedException");
         answerMessageJson.setMessage(e.getMessage());
-        answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
-        answerMessageJson.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value() + NOT_INSERTED_CODE);
-        return answerMessageJson;
-    }
-
-    @ExceptionHandler(AlreadyExistElementException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public AnswerMessageJson handleAlreadyExistElementException(AlreadyExistElementException e) {
-        LOGGER.error("Handle AlreadyExistElementException");
-        answerMessageJson.setMessage(e.getMessage());
-        answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
-        answerMessageJson.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value() + ALREADY_EXIST_ELEMENT_CODE);
+        answerMessageJson.setStatus(httpStatusInternalServerError.toString());
+        answerMessageJson.setCode(httpStatusInternalServerError.value() + NOT_INSERTED_CODE);
         return answerMessageJson;
     }
 
@@ -84,8 +76,8 @@ public class ExceptionController extends AbstractController{
     public AnswerMessageJson handleInvalidInputDataException(InvalidInputDataException e) {
         LOGGER.error("Handle InvalidInputDataException");
         answerMessageJson.setMessage(e.getMessage());
-        answerMessageJson.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.toString());
-        answerMessageJson.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value() + INVALID_INPUT_DATE_CODE);
+        answerMessageJson.setStatus(httpStatusInternalServerError.toString());
+        answerMessageJson.setCode(httpStatusInternalServerError.value() + INVALID_INPUT_DATE_CODE);
         return answerMessageJson;
     }
 }

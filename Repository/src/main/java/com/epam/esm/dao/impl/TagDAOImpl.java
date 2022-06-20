@@ -2,132 +2,95 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.AbstractDAO;
 import com.epam.esm.dao.TagDAO;
-import com.epam.esm.domain.GiftCertificate;
 import com.epam.esm.domain.Tag;
-import com.epam.esm.jdbcmappers.TagMapper;
+import com.epam.esm.exception.RepositoryException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Root;
 import java.util.*;
+
+import static com.epam.esm.stringsstorage.RepositoryStringsStorage.*;
 
 @Repository
 public class TagDAOImpl extends AbstractDAO implements TagDAO {
 
-    private static final String SELECT_COUNT_FROM_TAG_BY_ID = "SELECT COUNT(*) FROM tag WHERE id = ?;";
-    private static final String SELECT_ALL_FROM_TAG_BY_ID = "SELECT * FROM tag WHERE id = ?;";
-    private static final String SELECT_ALL_FROM_TAG = "SELECT * FROM tag;";
-    private static final String DELETE_TAG_BY_ID = "DELETE FROM tag WHERE id = ?;";
-    private static final String SELECT_COUNT_FROM_TAG_BY_NAME = "SELECT COUNT(*) FROM tag WHERE name = ?;";
-    private static final String INSERT_INTO_TAG = "INSERT INTO tag (name) VALUES (?);";
-    private static final String SELECT_TAG_ID_BY_NAME = "SELECT id FROM tag WHERE name = ?;";
-    private static final String SELECT_TAG_ID_BY_GIFT_CERTIFICATE_ID = "SELECT tag_id FROM certificates_and_tags WHERE gift_certificate_id = ?";
     private static final String DELETE_TAG_FROM_MANY_TO_MANY_TABLE = "DELETE FROM certificates_and_tags WHERE tag_id = ?;";
 
-    private final TagMapper tagMapper;
-
     @Autowired
-    public TagDAOImpl(JdbcTemplate jdbcTemplate, TagMapper tagMapper) {
-        super(jdbcTemplate);
-        this.tagMapper = tagMapper;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public int createTag(Tag tag) {
-        int resultCode;
-        Integer countOfTags = jdbcTemplate.queryForObject(SELECT_COUNT_FROM_TAG_BY_NAME, Integer.class, tag.getName());
-        if (countOfTags != null && countOfTags != 0) {
-            resultCode = -1;
-        } else {
-            resultCode = jdbcTemplate.update(INSERT_INTO_TAG, tag.getName());
-        }
-        return resultCode;
+    public TagDAOImpl(SessionFactory sessionFactory) {
+        super(sessionFactory);
     }
 
     @Override
-    public Tag getTagById(long id) {
-        Tag tag = null;
-        if (isIdExists(id)) {
-            tag = jdbcTemplate.queryForObject(SELECT_ALL_FROM_TAG_BY_ID, tagMapper, id);
+    public void createTag(Tag tag) throws RepositoryException {
+        try {
+            getTagByName(tag.getName());
+            throw new RepositoryException("Such tag is already exists");
+        } catch (NoResultException e) {
+            sessionFactory.getCurrentSession().save(tag);
         }
-        return tag;
     }
 
     @Override
-    public List<Tag> getTagList() {
-        return jdbcTemplate.query(SELECT_ALL_FROM_TAG, tagMapper);
+    public Optional<Tag> getTagById(long id) {
+        return Optional.ofNullable(sessionFactory.getCurrentSession().get(Tag.class, id));
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public int deleteTag(long id) {
-        int countOfDeletedLines = 0;
-        if (isIdExists(id)) {
-            jdbcTemplate.update(DELETE_TAG_FROM_MANY_TO_MANY_TABLE, id);
-            countOfDeletedLines = jdbcTemplate.update(DELETE_TAG_BY_ID, id);
-        }
-        return countOfDeletedLines;
+    public List<Tag> getTagList(int page, int size) {
+        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<Tag> criteriaQuery = criteriaBuilder.createQuery(Tag.class);
+        Root<Tag> root = criteriaQuery.from(Tag.class);
+        criteriaQuery.select(root);
+        Query<Tag> query = session.createQuery(criteriaQuery);
+        query.setFirstResult((page - 1) * size);
+        query.setMaxResults(size);
+        return query.getResultList();
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public void addNewTagFromGiftCertificate(GiftCertificate giftCertificate) {
-        for (Tag tag : giftCertificate.getTags()) {
-            Integer count = jdbcTemplate.queryForObject(SELECT_COUNT_FROM_TAG_BY_NAME, Integer.class,
-                    tag.getName());
-            if (count != null && count == 0) {
-                createTag(tag);
-            }
-        }
+    public void deleteTag(long id) throws RepositoryException {
+        Session session = sessionFactory.getCurrentSession();
+        Tag tag = getTagById(id).orElseThrow(() -> new RepositoryException("There is no such id"));
+        session.createNativeQuery(DELETE_TAG_FROM_MANY_TO_MANY_TABLE.replace("?", String.valueOf(tag.getId()))).executeUpdate();
+        session.delete(tag);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public List<Long> getTagIdsListByGiftCertificate(GiftCertificate giftCertificate) {
-        List<Long> tagsIds = new ArrayList<>();
-        String[] tagNames = giftCertificate.getTagsInString().split(",");
-        for (String tagName : tagNames) {
-            Long tagId = jdbcTemplate.queryForObject(SELECT_TAG_ID_BY_NAME, Long.class, tagName);
-            tagsIds.add(tagId);
-        }
-        return tagsIds;
+    public void updateTag(Tag tag) {
+        sessionFactory.getCurrentSession().update(tag);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public Set<Tag> getTagSetByGiftCertificateId(long id) {
-        Set<Tag> tags = new HashSet<>();
-        for (Long tagId : getTagIdsListByGiftCertificateId(id)) {
-            Tag tag = jdbcTemplate.queryForObject(SELECT_ALL_FROM_TAG_BY_ID, tagMapper, tagId);
-            tags.add(tag);
-        }
-        return tags;
+    public Optional<Tag> getTagByName(String tagName) {
+        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<Tag> criteriaQuery = criteriaBuilder.createQuery(Tag.class);
+        Root<Tag> root = criteriaQuery.from(Tag.class);
+        ParameterExpression<String> parameterExpression = criteriaBuilder.parameter(String.class);
+        criteriaQuery.select(root).where(criteriaBuilder.equal(root.get(NAME), parameterExpression));
+        Query<Tag> query = session.createQuery(criteriaQuery);
+        query.setParameter(parameterExpression, tagName);
+        return Optional.ofNullable(query.getSingleResult());
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public Long getTagIdByTagName(String tagName) {
-        Long tagCountByTagName = jdbcTemplate.queryForObject(SELECT_COUNT_FROM_TAG_BY_NAME, Long.class, tagName);
-        Long tagIdByTagName = null;
-        if (tagCountByTagName != null && tagCountByTagName != 0) {
-            tagIdByTagName = jdbcTemplate.queryForObject(SELECT_TAG_ID_BY_NAME, Long.class, tagName);
-        }
-        return tagIdByTagName;
-    }
-
-    private List<Long> getTagIdsListByGiftCertificateId(long id) {
-        return jdbcTemplate.queryForList(SELECT_TAG_ID_BY_GIFT_CERTIFICATE_ID, Long.class, id);
-    }
-
-    private boolean isIdExists(long id) {
-        boolean isExist = false;
-        Integer idsCount = jdbcTemplate.queryForObject(SELECT_COUNT_FROM_TAG_BY_ID, Integer.class, id);
-        if (Objects.nonNull(idsCount) && idsCount != 0) {
-            isExist = true;
-        }
-        return isExist;
+    public Long getTagCountByName(Tag tag) {
+        CriteriaBuilder criteriaBuilder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+        CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+        Root<Tag> root = criteriaQuery.from(Tag.class);
+        criteriaQuery.select(criteriaBuilder.count(root));
+        criteriaQuery.where(criteriaBuilder.equal(root.get(NAME), tag.getName()));
+        return sessionFactory.createEntityManager().createQuery(criteriaQuery).getSingleResult();
     }
 
 }

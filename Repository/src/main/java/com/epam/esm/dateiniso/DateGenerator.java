@@ -1,5 +1,6 @@
 package com.epam.esm.dateiniso;
 
+import com.epam.esm.stringsstorage.RepositoryStringsStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class DateGenerator {
     }
 
     public String getCurrentDateAsISO() {
-        Date date = (Date) applicationContext.getBean("date");
+        Date date = (Date) applicationContext.getBean(RepositoryStringsStorage.DATE);
         dateFormat.setTimeZone(timeZone);
         return dateFormat.format(date);
     }

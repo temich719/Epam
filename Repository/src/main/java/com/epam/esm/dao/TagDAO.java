@@ -1,10 +1,10 @@
 package com.epam.esm.dao;
 
-import com.epam.esm.domain.GiftCertificate;
 import com.epam.esm.domain.Tag;
+import com.epam.esm.exception.RepositoryException;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 
 public interface TagDAO {
 
@@ -12,9 +12,9 @@ public interface TagDAO {
      * creates Tag object to tag table
      *
      * @param tag is the Tag object that need to be inserted to database
-     * @return count of inserted lines
+     * @throws RepositoryException is the module exception
      */
-    int createTag(Tag tag);
+    void createTag(Tag tag) throws RepositoryException;
 
     /**
      * finds Tag object according to given id
@@ -22,52 +22,46 @@ public interface TagDAO {
      * @param id is the Tag object id
      * @return Tag object that has id the same as given one's
      */
-    Tag getTagById(long id);
+    Optional<Tag> getTagById(long id);
 
     /**
      * finds all Tag objects
      *
+     * @param page is the number of page
+     * @param size is the size of page
      * @return list of all Tag objects that exist in database
      */
-    List<Tag> getTagList();
+    List<Tag> getTagList(int page, int size);
 
     /**
      * deletes Tag according to given id
      *
      * @param id is the Tag id
-     * @return count of deleted lines
+     * @throws RepositoryException is the module exception
      */
-    int deleteTag(long id);
+    void deleteTag(long id) throws RepositoryException;
 
     /**
-     * insert Tag from GiftCertificate object(according to its set of tags)
+     * updates tag
      *
-     * @param giftCertificate is the GiftCertificate object
+     * @param tag is the new tag
      */
-    void addNewTagFromGiftCertificate(GiftCertificate giftCertificate);
+    void updateTag(Tag tag);
 
     /**
-     * finds ids of Tag objects that are contained in given GiftCertificate
+     * gets tag by name
      *
-     * @param giftCertificate is the GiftCertificate
-     * @return list of Tag ids
+     * @param tagName is the tag name
+     * @return tag with given name
      */
-    List<Long> getTagIdsListByGiftCertificate(GiftCertificate giftCertificate);
+    Optional<Tag> getTagByName(String tagName);
 
     /**
-     * finds Tag objects that contained in GiftCertificate according to its given id
+     * gets count of tags that have name the same as given
      *
-     * @param id is the GiftCertificate id
-     * @return set of Tag objects
+     * @param tag is the tag with given name
+     * @return count of tags
      */
-    Set<Tag> getTagSetByGiftCertificateId(long id);
-
-    /**
-     * finds Tag id by name of this Tag
-     *
-     * @param tagName is the Tag name
-     * @return Tag id
-     */
-    Long getTagIdByTagName(String tagName);
+    Long getTagCountByName(Tag tag);
 
 }
