@@ -3,7 +3,7 @@ package service;
 import com.epam.esm.dao.UserDAO;
 import com.epam.esm.domain.Order;
 import com.epam.esm.domain.User;
-import com.epam.esm.dtos.*;
+import com.epam.esm.dto.*;
 import com.epam.esm.exception.RepositoryException;
 import com.epam.esm.util.Mapper;
 import org.junit.jupiter.api.BeforeEach;
