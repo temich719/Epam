@@ -1,4 +1,4 @@
-package com.epam.esm.dtos;
+package com.epam.esm.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 public class UserDTO extends RepresentationModel<UserDTO> {
 
-    String userName;
-    List<AnswerOrderDTO> orderDTOs;
+    private String userName;
+    private List<AnswerOrderDTO> orderDTOs;
+    private String password;
 
 }
